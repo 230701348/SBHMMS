@@ -127,8 +127,10 @@ body {
   border-radius: 12px;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 200px;
-  height: 110px;
+  width: 220px;
+  height: 130px;
+  max-width: 220px;
+  max-height: 130px;
   display: flex;
   flex-direction: column;
   justify-content: center;
