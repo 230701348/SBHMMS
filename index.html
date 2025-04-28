@@ -5,7 +5,7 @@
     <title>Smart Battery Health Monitoring and Maintenance System</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
@@ -145,27 +145,45 @@
 
       async function trainAndSaveModel() {
         const trainingData = [
-          { current: 0.007, voltage: 1.5, temp: 32, rul: 500 },
-          { current: 0.007, voltage: 1.49, temp: 33, rul: 495 },
-          { current: 0.007, voltage: 1.4, temp: 34, rul: 450 },
-          { current: 0.007, voltage: 1.38, temp: 35, rul: 440 },
-          { current: 0.007, voltage: 1.3, temp: 37, rul: 400 },
-          { current: 0.007, voltage: 1.28, temp: 38, rul: 390 },
-          { current: 0.007, voltage: 1.2, temp: 39, rul: 350 },
-          { current: 0.007, voltage: 1.18, temp: 39, rul: 340 },
-          { current: 0.007, voltage: 1.1, temp: 40, rul: 300 },
-          { current: 0.007, voltage: 1.08, temp: 40.1, rul: 290 },
-          { current: 0.007, voltage: 1.0, temp: 40.2, rul: 250 },
-          { current: 0.007, voltage: 0.98, temp: 40.3, rul: 240 },
-          { current: 0.007, voltage: 0.9, temp: 40.4, rul: 200 },
+          { current: 0.007, voltage: 1.5, rul: 500 },
+          { current: 0.007, voltage: 1.48, rul: 490 },
+          { current: 0.007, voltage: 1.46, rul: 480 },
+          { current: 0.007, voltage: 1.44, rul: 470 },
+          { current: 0.007, voltage: 1.42, rul: 460 },
+          { current: 0.007, voltage: 1.4, rul: 450 },
+          { current: 0.007, voltage: 1.38, rul: 440 },
+          { current: 0.007, voltage: 1.36, rul: 430 },
+          { current: 0.007, voltage: 1.34, rul: 420 },
+          { current: 0.007, voltage: 1.32, rul: 410 },
+          { current: 0.007, voltage: 1.3, rul: 400 },
+          { current: 0.007, voltage: 1.28, rul: 390 },
+          { current: 0.007, voltage: 1.26, rul: 380 },
+          { current: 0.007, voltage: 1.24, rul: 370 },
+          { current: 0.007, voltage: 1.22, rul: 360 },
+          { current: 0.007, voltage: 1.2, rul: 350 },
+          { current: 0.007, voltage: 1.18, rul: 340 },
+          { current: 0.007, voltage: 1.16, rul: 330 },
+          { current: 0.007, voltage: 1.14, rul: 320 },
+          { current: 0.007, voltage: 1.12, rul: 310 },
+          { current: 0.007, voltage: 1.1, rul: 300 },
+          { current: 0.007, voltage: 1.08, rul: 290 },
+          { current: 0.007, voltage: 1.06, rul: 280 },
+          { current: 0.007, voltage: 1.04, rul: 270 },
+          { current: 0.007, voltage: 1.02, rul: 260 },
+          { current: 0.007, voltage: 1.0, rul: 250 },
+          { current: 0.007, voltage: 0.98, rul: 240 },
+          { current: 0.007, voltage: 0.96, rul: 230 },
+          { current: 0.007, voltage: 0.94, rul: 220 },
+          { current: 0.007, voltage: 0.92, rul: 210 },
+          { current: 0.007, voltage: 0.9, rul: 200 },
         ];
 
-        const inputs = trainingData.map((d) => [d.current, d.voltage, d.temp]);
+        const inputs = trainingData.map((d) => [d.current, d.voltage]);
         const labels = trainingData.map((d) => d.rul);
 
         model = tf.sequential();
         model.add(
-          tf.layers.dense({ units: 32, activation: "relu", inputShape: [3] })
+          tf.layers.dense({ units: 32, activation: "relu", inputShape: [2] }) 
         );
         model.add(tf.layers.dense({ units: 16, activation: "relu" }));
         model.add(tf.layers.dense({ units: 1, activation: "linear" }));
@@ -182,21 +200,25 @@
           epochs: 300,
           batchSize: 10,
           callbacks: {
-            
+            onEpochEnd: (epoch, logs) => {
+            },
           },
         });
 
         await model.save("localstorage://battery-life-model");
-        console.log("Model trained and saved to localStorage.");
+        console.log(
+          "✅ Model trained and saved to localStorage."
+        );
       }
-      trainAndSaveModel();
+
+      // trainAndSaveModel();
 
       async function loadModel() {
         try {
           model = await tf.loadLayersModel("localstorage://battery-life-model");
           console.log("Model loaded from localStorage.");
         } catch (error) {
-          console.log("No saved model found, training a new one...");
+          console.log("No saved model found");
         }
       }
 
@@ -211,12 +233,10 @@
           document.getElementById("rul").textContent = `0 cycles`;
           return;
         }
-        const input = tf.tensor2d([[current, voltage, temperature]]);
+        const input = tf.tensor2d([[current, voltage]]);
         const prediction = model.predict(input);
         const predictedRUL = prediction.dataSync()[0];
-        document.getElementById("rul").textContent = `${predictedRUL.toFixed(
-          2
-        )} cycles`;
+        document.getElementById("rul").textContent = `${predictedRUL.toFixed(2)} cycles`;
       }
 
       window.serialAPI.onData((data) => {
@@ -255,7 +275,7 @@
             const currentVal = parseFloat(current);
             const voltageVal = parseFloat(voltage);
             const tempVal = parseFloat(temp);
-            predictRUL(currentVal, voltageVal, tempVal);
+            predictRUL(currentVal, voltageVal);
           }
         } catch (e) {
           console.log("Data parse error", e);
