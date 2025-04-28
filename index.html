@@ -163,7 +163,7 @@
         const inputs = trainingData.map((d) => [d.current, d.voltage, d.temp]);
         const labels = trainingData.map((d) => d.rul);
 
-        const model = tf.sequential();
+        model = tf.sequential();
         model.add(
           tf.layers.dense({ units: 32, activation: "relu", inputShape: [3] })
         );
@@ -182,15 +182,14 @@
           epochs: 300,
           batchSize: 10,
           callbacks: {
-            onEpochEnd: (epoch, logs) => {
-              console.log(`Epoch ${epoch}: loss = ${logs.loss}`);
-            },
+            
           },
         });
 
         await model.save("localstorage://battery-life-model");
         console.log("Model trained and saved to localStorage.");
       }
+      trainAndSaveModel();
 
       async function loadModel() {
         try {
@@ -198,13 +197,10 @@
           console.log("Model loaded from localStorage.");
         } catch (error) {
           console.log("No saved model found, training a new one...");
-          await trainAndSaveModel();
         }
       }
 
       loadModel();
-
-      // trainAndSaveModel();
 
       async function predictRUL(current, voltage, temperature) {
         if (!model) {
@@ -255,7 +251,6 @@
 
             estimateSoCFromVoltage(voltage);
             estimateSoHFromVoltage(voltage);
-            trackChargeCycle(voltage, current);
 
             const currentVal = parseFloat(current);
             const voltageVal = parseFloat(voltage);
