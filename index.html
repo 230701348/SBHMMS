@@ -5,6 +5,8 @@
     <title>Smart Battery Health Monitoring and Maintenance System</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/justgage@1.4.0/justgage.min.js"></script>
     <link rel="stylesheet" href="style.css" />
   </head>
 
@@ -41,14 +43,6 @@
           <span id="power">-- W</span>
         </div>
         <div class="card">
-          <h2>📈State of Charge</h2>
-          <span id="soc">100 %</span>
-        </div>
-        <div class="card">
-          <h2>❤️State of Health</h2>
-          <span id="soh">100</span>
-        </div>
-        <div class="card">
           <h2>🏎️Efficiency</h2>
           <span id="efficiency">-- %</span>
         </div>
@@ -63,6 +57,18 @@
         <div class="card">
           <h2>Battery Status</h2>
           <span id="batteryStatus">--</span>
+        </div>
+      </div>
+      <div class="meter">
+        <div class="sepm">
+          <h2>📈State of Charge</h2>
+          <div id="socGauge"></div>
+          <span id="soc">100 %</span>
+        </div>
+        <div class="sepm">
+          <h2>❤️State of Health</h2>
+          <div id="sohGauge"></div>
+          <span id="soh">100</span>
         </div>
       </div>
 
@@ -245,7 +251,7 @@
           2
         )} cycles`;
 
-        const cycleDurationHours = 2.29; 
+        const cycleDurationHours = 2.29;
         const predictedHours = predictedRUL * cycleDurationHours;
         document.getElementById(
           "hoursRemaining"
@@ -260,7 +266,6 @@
           status = "Critical ❌";
         }
         document.getElementById("batteryStatus").textContent = status;
-
       }
 
       window.serialAPI.onData((data) => {
@@ -313,6 +318,7 @@
         let soc = ((voltage - minV) / (maxV - minV)) * 100;
         soc = Math.min(100, Math.max(0, soc.toFixed(1)));
         document.getElementById("soc").textContent = `${soc} %`;
+        updateSOCGauge(soc);
       }
 
       function estimateSoHFromVoltage(voltage) {
@@ -322,6 +328,35 @@
         let soh = ((voltage - minVoltage) / (ratedVoltage - minVoltage)) * 100;
         soh = Math.min(100, Math.max(0, soh.toFixed(1)));
         document.getElementById("soh").textContent = `${soh}`;
+        updateSOHGauge(soh);
+      }
+
+      let socGauge = new JustGage({
+        id: "socGauge",
+        value: 0,
+        min: 0,
+        max: 100,
+        title: "State of Charge",
+        hideValue: true,
+        levelColors: ["#ff4d4d", "#ffcc00", "#66ff66"]
+      });
+
+      function updateSOCGauge(value) {
+        socGauge.refresh(value);
+      }
+
+      let sohGauge = new JustGage({
+        id: "sohGauge",
+        value: 0,
+        min: 0,
+        max: 100,
+        title: "State of Health",
+        hideValue: true,
+        levelColors: ["#ff4d4d", "#ffcc00", "#66ff66"]
+      });
+
+      function updateSOHGauge(value) {
+        sohGauge.refresh(value);
       }
     </script>
   </body>
