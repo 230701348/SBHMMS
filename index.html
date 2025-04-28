@@ -25,36 +25,44 @@
 
       <div class="dashboard">
         <div class="card">
-          <h2>Current</h2>
+          <h2>🔌Current</h2>
           <span id="current">-- A</span>
         </div>
         <div class="card">
-          <h2>Voltage</h2>
+          <h2>⚡Voltage</h2>
           <span id="voltage">-- V</span>
         </div>
         <div class="card">
-          <h2>Temperature</h2>
+          <h2>🌡️Temperature</h2>
           <span id="temp">-- °C</span>
         </div>
         <div class="card">
-          <h2>Power</h2>
+          <h2>🪫Power</h2>
           <span id="power">-- W</span>
         </div>
         <div class="card">
-          <h2>State of Charge</h2>
+          <h2>📈State of Charge</h2>
           <span id="soc">100 %</span>
         </div>
         <div class="card">
-          <h2>State of Health</h2>
+          <h2>❤️State of Health</h2>
           <span id="soh">100</span>
         </div>
         <div class="card">
-          <h2>Efficiency</h2>
+          <h2>🏎️Efficiency</h2>
           <span id="efficiency">-- %</span>
         </div>
         <div class="card">
-          <h2>Remaining Useful Life</h2>
+          <h2>⏳Remaining Useful Life</h2>
           <span id="rul">-- cycles</span>
+        </div>
+        <div class="card">
+          <h2>🕰️Remaining Life</h2>
+          <span id="hoursRemaining">-- hours</span>
+        </div>
+        <div class="card">
+          <h2>Battery Status</h2>
+          <span id="batteryStatus">--</span>
         </div>
       </div>
 
@@ -183,7 +191,7 @@
 
         model = tf.sequential();
         model.add(
-          tf.layers.dense({ units: 32, activation: "relu", inputShape: [2] }) 
+          tf.layers.dense({ units: 32, activation: "relu", inputShape: [2] })
         );
         model.add(tf.layers.dense({ units: 16, activation: "relu" }));
         model.add(tf.layers.dense({ units: 1, activation: "linear" }));
@@ -200,15 +208,12 @@
           epochs: 300,
           batchSize: 10,
           callbacks: {
-            onEpochEnd: (epoch, logs) => {
-            },
+            onEpochEnd: (epoch, logs) => {},
           },
         });
 
         await model.save("localstorage://battery-life-model");
-        console.log(
-          "✅ Model trained and saved to localStorage."
-        );
+        console.log("✅ Model trained and saved to localStorage.");
       }
 
       // trainAndSaveModel();
@@ -236,7 +241,26 @@
         const input = tf.tensor2d([[current, voltage]]);
         const prediction = model.predict(input);
         const predictedRUL = prediction.dataSync()[0];
-        document.getElementById("rul").textContent = `${predictedRUL.toFixed(2)} cycles`;
+        document.getElementById("rul").textContent = `${predictedRUL.toFixed(
+          2
+        )} cycles`;
+
+        const cycleDurationHours = 2.29; 
+        const predictedHours = predictedRUL * cycleDurationHours;
+        document.getElementById(
+          "hoursRemaining"
+        ).textContent = `${predictedHours.toFixed(2)} hours remaining`;
+
+        let status = "";
+        if (predictedRUL > 300) {
+          status = "Good 🔋";
+        } else if (predictedRUL > 100) {
+          status = "Warning ⚠️";
+        } else {
+          status = "Critical ❌";
+        }
+        document.getElementById("batteryStatus").textContent = status;
+
       }
 
       window.serialAPI.onData((data) => {
