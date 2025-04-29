@@ -258,8 +258,13 @@
         ).textContent = `${predictedHours.toFixed(2)} hours remaining`;
 
         let status = "";
-        if (predictedRUL > 300) {
+
+        if (predictRUL >450){
           status = "Good 🔋";
+        }if(predictRUL >400){
+          status = "Starts To Drain ⚡";
+        }else if (predictedRUL > 300) {
+          status = "Draining 📉";
         } else if (predictedRUL > 100) {
           status = "Warning ⚠️";
         } else {
